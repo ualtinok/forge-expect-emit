@@ -3,22 +3,18 @@ pragma solidity 0.8.11;
 
 import "ds-test/test.sol";
 import "forge-std/Vm.sol";
-import {WETH} from "./mocks/WETH.sol";
 
 import "../Contract.sol";
-
 
 contract ContractTest is DSTest {
     event ZEvent(uint256 a, uint256 b, address c);
 
     Vm constant vm = Vm(HEVM_ADDRESS);
-    WETH internal weth;
 
     Contract c1;
 
     function setUp() public {
-        weth = new WETH();
-        c1 = new Contract(address(weth));
+        c1 = new Contract();
         vm.deal(address(c1), 100 ether);
     }
 
