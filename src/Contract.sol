@@ -24,6 +24,11 @@ contract Contract{
         emit ZEvent(1, 2, msg.sender);
     }
 
+    function testemitWOCall(uint256 _z) external {
+        z = _z;
+        emit ZEvent(1, 2, msg.sender);
+    }
+
     function _safeTransferETHWithFallback(address _to, uint256 _amount) internal {
         if (_amount == 0 || _to == address(0)) {
             revert EthTransferFailedDestOrAmountZero();
