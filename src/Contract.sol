@@ -11,8 +11,6 @@ contract Contract{
     uint public z;
     IWETH immutable weth;
     event ZEvent(uint256 a, uint256 b, address c);
-    error Insolvent();
-    error EthTransferFailedDestOrAmountZero();
 
     constructor(address _weth){
         weth = IWETH(_weth);
@@ -20,7 +18,7 @@ contract Contract{
 
     function testemit(uint256 _z) external {
         z = _z;
-        _safeTransferETHWithFallback(msg.sender, 1);
+        _callN(msg.sender, 1);
         emit ZEvent(1, 2, msg.sender);
     }
 
@@ -29,17 +27,8 @@ contract Contract{
         emit ZEvent(1, 2, msg.sender);
     }
 
-    function _safeTransferETHWithFallback(address _to, uint256 _amount) internal {
-        if (_amount == 0 || _to == address(0)) {
-            revert EthTransferFailedDestOrAmountZero();
-        }
-        if (address(this).balance < _amount) {
-            revert Insolvent();
-        }
+    function _callN(address _to, uint256 _amount) internal {
         (bool success, ) = _to.call{value: _amount, gas: 30_000}(new bytes(0));
-        if (!success) {
-            weth.deposit{value: _amount}();
-            IERC20(address(weth)).safeTransfer(_to, _amount);
-        }
+
     }
 }
