@@ -3,78 +3,53 @@ pragma solidity 0.8.11;
 
 import "ds-test/test.sol";
 import "forge-std/Vm.sol";
+import {WETH} from "./mocks/WETH.sol";
 
 import "../Contract.sol";
-import "openzeppelin-contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
+
 
 contract ContractTest is DSTest {
+    event ZEvent(uint256 a, uint256 b, address c);
+
     Vm constant vm = Vm(HEVM_ADDRESS);
+    WETH internal weth;
 
     Contract c1;
-    Contract c2;
 
     function setUp() public {
-        c1 = new Contract();
-        c2 = Contract(
-            deployProxy(
-                type(Contract).creationCode,
-                address(1), // proxyAdmin
-                new bytes(0) // init calldata
-            )
-        );
+        weth = new WETH();
+        c1 = new Contract(address(weth));
+        vm.deal(address(c1), 100 ether);
     }
 
-    event Updated(uint u1);
-
-    function testEvent1c1() public {
-        // Calling update before vm.expectEmit
-        c1.update(1337);
-
-        vm.expectEmit(false, false, false, true);
-        emit Updated(0); // wrong
-
-        assertEq(c1.u(), 1337);
+    function testExpectEmit0() public {
+        vm.expectEmit(true, false, false, true);
+        emit ZEvent(1, 2, address(this)); // should pass
+        c1.testemit(10);
     }
 
-    function testEvent1c2() public {
-        // Calling update before vm.expectEmit
-        c2.update(1337);
-
-        vm.expectEmit(false, false, false, true);
-        emit Updated(0); // wrong
-
-        assertEq(c2.u(), 1337);
+    function testExpectEmit() public {
+        vm.expectEmit(true, false, false, true);
+        emit ZEvent(42893283, 4223232, address(this)); // should fail
+        c1.testemit(10);
     }
 
-    function testEvent2c1() public {
-        vm.expectEmit(false, false, false, true);
-        emit Updated(0); // wrong
-
-        c1.update(1337);
+    function testExpectEmit2() public {
+        vm.expectEmit(true, false, false, true);
+        //emit ZEvent(42893283, 4223232, address(this)); // also should fail
+        c1.testemit(10);
     }
 
-    function testEvent2c2() public {
-        vm.expectEmit(false, false, false, true);
-        emit Updated(0); // wrong
-
-        c2.update(1337);
+    function testExpectEmit3() public {
+        vm.expectEmit(false, false, false, false);
+        //emit ZEvent(42893283, 4223232, address(this)); // also should fail
+        c1.testemit(10);
     }
 
-    /// ============================
-    /// ===== Internal helpers =====
-    /// ============================
-
-    function deployProxy(
-        bytes memory _creationCode,
-        address _admin,
-        bytes memory _data
-    ) internal returns (address proxy_) {
-        address logic;
-        assembly {
-            logic := create(0, add(_creationCode, 0x20), mload(_creationCode))
-        }
-
-        proxy_ = address(new TransparentUpgradeableProxy(logic, _admin, _data));
+    function testExpectEmit4() public {
+        vm.expectEmit(true, false, false, true);
+        //emit ZEvent(42893283, 4223232, address(this)); // also should fail
+        c1.testemit(10);
     }
 
 }
